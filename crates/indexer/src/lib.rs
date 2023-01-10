@@ -21,11 +21,12 @@ pub async fn spawn_fetch_modules_task(
             context.write_set_change_index = last_module.write_set_change_index;
             context.transaction_version = last_module.transaction_version;
             context.offset += context.stride;
+
+            modules_sender
+                .send(res)
+                .map_err(|_| DbError::DieselError)
+                .ok();
         }
-        modules_sender
-            .send(res)
-            .map_err(|_| DbError::DieselError)
-            .ok();
     }
 }
 
@@ -34,6 +35,7 @@ pub async fn spawn_function_parser_task(
     move_functions_sender: Sender<Vec<ModuleFunction>>,
 ) -> Result<(), DbError> {
     loop {
+        println!("2");
         crossbeam_channel::select! {
             recv(modules_receiver) -> unchecked_modules => {
                 if let Ok(modules) = unchecked_modules {
@@ -57,6 +59,7 @@ pub async fn spawn_function_indexer_task(
     let mut conn = database.borrow_mut().get_conn()?;
 
     loop {
+        println!("3");
         crossbeam_channel::select! {
             recv(move_functions_receiver) -> unchecked_functions => {
                 if let Ok(functions) = unchecked_functions {
