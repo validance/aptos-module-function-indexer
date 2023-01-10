@@ -1,0 +1,12 @@
+[package]
+name = "runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.tokio]
+version = "1.24.1"
+features = ["full"]
+
+[dependencies]
+dotenv = "0.15.0"
+config = {path = "../config"}
