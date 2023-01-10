@@ -1,10 +1,10 @@
+use crate::models::module_function::ModuleFunction;
 use crate::models::DbError;
 use crate::schema::move_modules::dsl::*;
 use crate::storage::PooledConnection;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use tokio::sync::MutexGuard;
-use crate::models::module_function::ModuleFunction;
 
 #[derive(Debug, PartialEq, Eq, Queryable)]
 pub struct MoveModule {
@@ -33,13 +33,12 @@ impl MoveModule {
             .limit(context.stride)
             .load::<MoveModule>(conn)?)
     }
-}
 
-impl TryFrom<MoveModule> for ModuleFunction {
-    type Error = ();
-
-    fn try_from(value: MoveModule) -> Result<Self, Self::Error> {
-        todo!()
+    pub fn extract_functions(&self) -> Option<Vec<ModuleFunction>> {
+        match self.exposed_functions.clone() {
+            Some(functions) => serde_json::from_value::<Vec<ModuleFunction>>(functions).ok(),
+            None => None,
+        }
     }
 }
 
