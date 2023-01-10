@@ -1,4 +1,5 @@
 pub mod module_function;
+pub mod move_module;
 
 use diesel::result::Error as DieselError;
 use thiserror::Error;

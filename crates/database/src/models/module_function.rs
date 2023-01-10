@@ -1,4 +1,4 @@
-use crate::storage::WriteDatabase;
+use crate::db::WriteDatabase;
 use crate::schema;
 
 use diesel::prelude::*;
