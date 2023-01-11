@@ -11,7 +11,9 @@ use tokio::sync::Mutex;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt::init();
     dotenv::dotenv().ok();
+
     let aptos_db_config = DbConfig::from_env("FULL_INDEXER_URL");
     let function_indexer_config = DbConfig::from_env("DATABASE_URL");
 

@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use crate::models::DbError;
 use crate::storage::{DatabaseInner, PooledConnection};
 use config::DbConfig;
@@ -8,6 +9,12 @@ use diesel::{Insertable, RunQueryDsl, Table};
 #[derive(Clone)]
 pub struct Database {
     db: DatabaseInner,
+}
+
+impl Debug for Database {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "database")
+    }
 }
 
 impl Database {
