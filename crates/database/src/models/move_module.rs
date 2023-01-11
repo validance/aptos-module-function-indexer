@@ -1,4 +1,3 @@
-use std::ptr::write;
 use crate::models::module_function::{ExposedFunctions, ModuleFunction};
 use crate::models::DbError;
 use crate::storage::PooledConnection;
@@ -30,8 +29,10 @@ impl MoveModule {
 
         Ok(move_modules
             .filter(
-                transaction_version.ge(context.transaction_version).and(write_set_change_index.gt(context.write_set_change_index))
-                    .or(transaction_version.gt(context.transaction_version))
+                transaction_version
+                    .ge(context.transaction_version)
+                    .and(write_set_change_index.gt(context.write_set_change_index))
+                    .or(transaction_version.gt(context.transaction_version)),
             )
             .limit(context.stride)
             .load::<MoveModule>(conn)?)
@@ -53,7 +54,22 @@ pub struct ModuleContext {
 }
 
 impl ModuleContext {
-    pub fn new(transaction_version: i64, write_set_change_index:i64, stride: i64) -> Self {
-        ModuleContext { transaction_version, write_set_change_index, stride }
+    pub fn load_or_new(conn: &mut PooledConnection) -> Self {
+        match ModuleFunction::get_latest_function(conn) {
+            Ok(latest_fn) => Self::new(
+                latest_fn.move_modules_transaction_version,
+                latest_fn.move_modules_write_set_change_index,
+                30,
+            ),
+            Err(_) => Self::new(0, 0, 30),
+        }
+    }
+
+    fn new(transaction_version: i64, write_set_change_index: i64, stride: i64) -> Self {
+        ModuleContext {
+            transaction_version,
+            write_set_change_index,
+            stride,
+        }
     }
 }

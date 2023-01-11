@@ -1,13 +1,15 @@
 use crate::db::WriteDatabase;
 use crate::schema;
 
+use crate::models::DbError;
+use crate::storage::PooledConnection;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Identifiable, Insertable, Serialize)]
 #[diesel(primary_key(id))]
 #[diesel(table_name = schema::module_function)]
-pub struct ModuleFunction {
+pub struct NewModuleFunction {
     pub id: Option<i32>,
     pub move_modules_transaction_version: i64,
     pub move_modules_write_set_change_index: i64,
@@ -19,7 +21,20 @@ pub struct ModuleFunction {
     pub return_types: Option<serde_json::Value>,
 }
 
-impl WriteDatabase for ModuleFunction {}
+impl WriteDatabase for NewModuleFunction {}
+
+#[derive(Clone, Debug, PartialEq, Eq, Queryable)]
+pub struct ModuleFunction {
+    pub id: i32,
+    pub move_modules_transaction_version: i64,
+    pub move_modules_write_set_change_index: i64,
+    pub name: String,
+    pub visibility: String,
+    pub is_entry: bool,
+    pub generic_type_params: Option<serde_json::Value>,
+    pub params: Option<serde_json::Value>,
+    pub return_types: Option<serde_json::Value>,
+}
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExposedFunctions {
@@ -36,9 +51,9 @@ pub struct GenericTypeParams {
     pub constraints: Vec<String>,
 }
 
-impl From<ExposedFunctions> for ModuleFunction {
+impl From<ExposedFunctions> for NewModuleFunction {
     fn from(ef: ExposedFunctions) -> Self {
-        ModuleFunction {
+        NewModuleFunction {
             id: None,
             move_modules_transaction_version: 0,
             move_modules_write_set_change_index: 0,
@@ -53,8 +68,12 @@ impl From<ExposedFunctions> for ModuleFunction {
 }
 
 impl ExposedFunctions {
-    pub fn to_module_function(&self, move_modules_transaction_version: i64, move_modules_write_set_change_index: i64) -> ModuleFunction {
-        ModuleFunction {
+    pub fn to_module_function(
+        &self,
+        move_modules_transaction_version: i64,
+        move_modules_write_set_change_index: i64,
+    ) -> NewModuleFunction {
+        NewModuleFunction {
             id: None,
             move_modules_transaction_version,
             move_modules_write_set_change_index,
@@ -65,6 +84,14 @@ impl ExposedFunctions {
             params: self.params.clone(),
             return_types: self.r#return.clone(),
         }
+    }
+}
+
+impl ModuleFunction {
+    pub fn get_latest_function(conn: &mut PooledConnection) -> Result<ModuleFunction, DbError> {
+        use crate::schema::module_function::dsl::*;
+
+        Ok(module_function.order(id.desc()).first(conn)?)
     }
 }
 
