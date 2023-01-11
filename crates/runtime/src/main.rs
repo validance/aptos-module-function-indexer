@@ -12,17 +12,20 @@ use tokio::sync::Mutex;
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let db_config = DbConfig::from_env();
-    let context = Arc::new(Mutex::new(ModuleContext::default()));
+    let aptos_db_config = DbConfig::from_env("FULL_INDEXER_URL");
+    let function_indexer_config = DbConfig::from_env("DATABASE_URL");
 
-    let database = RefCell::new(Database::new(db_config).unwrap());
+    let aptos_database = RefCell::new(Database::new(aptos_db_config).unwrap());
+    let function_indexer_db = RefCell::new(Database::new(function_indexer_config).unwrap());
+
+    let context = Arc::new(Mutex::new(ModuleContext::new(0,0, 30)));
 
     let (modules_sender, modules_receiver) = crossbeam_channel::unbounded::<Vec<MoveModule>>();
     let (move_functions_sender, move_functions_receiver) =
         crossbeam_channel::unbounded::<Vec<ModuleFunction>>();
 
     let module_task_handle = tokio::task::spawn(spawn_fetch_modules_task(
-        database.clone(),
+        aptos_database.clone(),
         modules_sender,
         context,
     ));
@@ -34,7 +37,7 @@ async fn main() {
 
     let function_indexer_task_handle = tokio::task::spawn(spawn_function_indexer_task(
         move_functions_receiver,
-        database,
+        function_indexer_db,
     ));
 
     futures::future::join_all([

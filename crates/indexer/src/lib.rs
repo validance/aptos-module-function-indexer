@@ -17,16 +17,17 @@ pub async fn spawn_fetch_modules_task(
     loop {
         let mut context = context.lock().await;
         let res = MoveModule::get_latest_modules(&mut conn, &context)?;
-        if let Some(last_module) = res.last() {
-            context.write_set_change_index = last_module.write_set_change_index;
-            context.transaction_version = last_module.transaction_version;
-            context.offset += context.stride;
 
-            modules_sender
-                .send(res)
-                .map_err(|_| DbError::DieselError)
-                .ok();
+
+        if let Some(last_module) = res.last() {
+            context.transaction_version = last_module.transaction_version;
+            context.write_set_change_index = last_module.write_set_change_index;
         }
+
+        modules_sender
+            .send(res)
+            .map_err(|_| DbError::DieselError)
+            .ok();
     }
 }
 
@@ -35,15 +36,19 @@ pub async fn spawn_function_parser_task(
     move_functions_sender: Sender<Vec<ModuleFunction>>,
 ) -> Result<(), DbError> {
     loop {
-        println!("2");
         crossbeam_channel::select! {
             recv(modules_receiver) -> unchecked_modules => {
                 if let Ok(modules) = unchecked_modules {
                     modules
                     .into_iter()
                     .for_each(|module| {
-                        if let Some(functions) = module.extract_functions() {
-                            move_functions_sender.send(functions).ok();
+                        if let Some(function_collections) = module.extract_functions() {
+                            let module_functions = function_collections
+                            .into_iter()
+                            .map(|function| function.to_module_function(module.transaction_version, module.write_set_change_index))
+                            .collect::<Vec<ModuleFunction>>();
+
+                            move_functions_sender.send(module_functions).ok();
                         }
                     })
                 }
@@ -59,7 +64,6 @@ pub async fn spawn_function_indexer_task(
     let mut conn = database.borrow_mut().get_conn()?;
 
     loop {
-        println!("3");
         crossbeam_channel::select! {
             recv(move_functions_receiver) -> unchecked_functions => {
                 if let Ok(functions) = unchecked_functions {

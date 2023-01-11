@@ -39,8 +39,8 @@ impl ToString for DbConfig {
 }
 
 impl DbConfig {
-    pub fn from_env() -> Self {
-        let database_url_raw = env::var("DATABASE_URL").unwrap();
+    pub fn from_env(env: &str) -> Self {
+        let database_url_raw = env::var(env).unwrap();
         let database_url = Url::parse(&database_url_raw).unwrap();
         database_url.into()
     }
