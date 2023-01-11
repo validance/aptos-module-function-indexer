@@ -13,6 +13,7 @@ pub async fn spawn_fetch_modules_task(
     database: RefCell<Database>,
     modules_sender: Sender<Vec<MoveModule>>,
     context: Arc<Mutex<ModuleContext>>,
+    query_interval: u64,
 ) -> Result<(), DbError> {
     let mut conn = database.borrow_mut().get_conn()?;
     loop {
@@ -29,7 +30,7 @@ pub async fn spawn_fetch_modules_task(
                 .map_err(|_| DbError::DieselError)
                 .ok();
         }
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(query_interval)).await;
     }
 }
 

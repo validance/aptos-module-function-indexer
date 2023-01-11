@@ -1,23 +1,31 @@
 use std::env::VarError;
 use std::fmt::{Display, Formatter};
+use std::num::ParseIntError;
 use thiserror::Error;
 use url::ParseError;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    VarError(VarError),
-    UrlParseError(ParseError),
+    Var(VarError),
+    UrlParse(ParseError),
+    ParseInt(ParseIntError),
 }
 
 impl From<VarError> for Error {
     fn from(e: VarError) -> Self {
-        Self::VarError(e)
+        Self::Var(e)
     }
 }
 
 impl From<ParseError> for Error {
     fn from(e: ParseError) -> Self {
-        Self::UrlParseError(e)
+        Self::UrlParse(e)
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(e: ParseIntError) -> Self {
+        Self::ParseInt(e)
     }
 }
 

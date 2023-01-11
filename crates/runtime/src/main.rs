@@ -20,6 +20,7 @@ async fn main() {
         DbConfig::from_env("FULL_INDEXER_URL").expect("env variable FULL_INDEXER_URL not found");
     let function_indexer_config =
         DbConfig::from_env("DATABASE_URL").expect("env variable DATABASE_URL not found");
+    let query_interval = config::get_query_interval_from_env("QUERY_INTERVAL").unwrap_or(1000);
 
     let aptos_database = RefCell::new(Database::new(aptos_db_config).unwrap());
     let function_indexer_db = RefCell::new(Database::new(function_indexer_config).unwrap());
@@ -36,6 +37,7 @@ async fn main() {
         aptos_database.clone(),
         modules_sender,
         context,
+        query_interval,
     ));
 
     let parser_task_handle = tokio::task::spawn(spawn_function_parser_task(

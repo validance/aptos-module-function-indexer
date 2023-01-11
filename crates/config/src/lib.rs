@@ -48,3 +48,8 @@ impl DbConfig {
         Ok(database_url.into())
     }
 }
+
+pub fn get_query_interval_from_env(env: &str) -> Result<u64, Error> {
+    let query_interval_raw = env::var(env)?;
+    Ok(query_interval_raw.parse()?)
+}
