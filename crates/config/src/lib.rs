@@ -1,3 +1,6 @@
+mod error;
+
+use crate::error::Error;
 use std::env;
 use url::Url;
 
@@ -39,9 +42,9 @@ impl ToString for DbConfig {
 }
 
 impl DbConfig {
-    pub fn from_env(env: &str) -> Self {
-        let database_url_raw = env::var(env).unwrap();
-        let database_url = Url::parse(&database_url_raw).unwrap();
-        database_url.into()
+    pub fn from_env(env: &str) -> Result<Self, Error> {
+        let database_url_raw = env::var(env)?;
+        let database_url = Url::parse(&database_url_raw)?;
+        Ok(database_url.into())
     }
 }
