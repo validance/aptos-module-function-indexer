@@ -1,10 +1,10 @@
-use std::fmt::{Debug, Formatter};
 use crate::models::DbError;
 use crate::storage::{DatabaseInner, PooledConnection};
 use config::DbConfig;
 use diesel::query_builder::InsertStatement;
 use diesel::query_dsl::methods::ExecuteDsl;
 use diesel::{Insertable, RunQueryDsl, Table};
+use std::fmt::{Debug, Formatter};
 
 #[derive(Clone)]
 pub struct Database {
