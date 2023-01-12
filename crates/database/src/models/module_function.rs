@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 #[diesel(table_name = schema::module_function)]
 pub struct NewModuleFunction {
     pub id: Option<i32>,
+    pub module_address: String,
+    pub module_name: String,
     pub move_modules_transaction_version: i64,
     pub move_modules_write_set_change_index: i64,
     pub name: String,
@@ -26,6 +28,8 @@ impl WriteDatabase for NewModuleFunction {}
 #[derive(Clone, Debug, PartialEq, Eq, Queryable)]
 pub struct ModuleFunction {
     pub id: i32,
+    pub module_address: String,
+    pub module_name: String,
     pub move_modules_transaction_version: i64,
     pub move_modules_write_set_change_index: i64,
     pub name: String,
@@ -51,30 +55,18 @@ pub struct GenericTypeParams {
     pub constraints: Vec<String>,
 }
 
-impl From<ExposedFunctions> for NewModuleFunction {
-    fn from(ef: ExposedFunctions) -> Self {
-        NewModuleFunction {
-            id: None,
-            move_modules_transaction_version: 0,
-            move_modules_write_set_change_index: 0,
-            name: ef.name.to_string(),
-            visibility: ef.visibility.to_string(),
-            is_entry: ef.is_entry,
-            generic_type_params: ef.generic_type_params,
-            params: ef.params,
-            return_types: ef.r#return,
-        }
-    }
-}
-
 impl ExposedFunctions {
     pub fn to_module_function(
         &self,
+        module_address: &str,
+        module_name: &str,
         move_modules_transaction_version: i64,
         move_modules_write_set_change_index: i64,
     ) -> NewModuleFunction {
         NewModuleFunction {
             id: None,
+            module_address: module_address.to_string(),
+            module_name: module_name.to_string(),
             move_modules_transaction_version,
             move_modules_write_set_change_index,
             name: self.name.to_string(),

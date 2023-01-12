@@ -50,9 +50,9 @@ pub async fn spawn_function_parser_task(
                         if let Some(function_collections) = module.extract_functions() {
                             info!("parsing {} functions", function_collections.len());
                             let module_functions = function_collections
-                            .into_iter()
-                            .map(|function| function.to_module_function(module.transaction_version, module.write_set_change_index))
-                            .collect::<Vec<NewModuleFunction>>();
+                                .into_iter()
+                                .map(|function| function.to_module_function(&module.address, &module.name, module.transaction_version, module.write_set_change_index))
+                                .collect::<Vec<NewModuleFunction>>();
                             move_functions_sender.send(module_functions).ok();
                         }
                     })

@@ -3,6 +3,8 @@
 CREATE TABLE IF NOT EXISTS module_function
 (
     id                                  SERIAL PRIMARY KEY,
+    module_address                      VARCHAR(66)  NOT NULL,
+    module_name                         VARCHAR(256) NOT NULL,
     move_modules_transaction_version    BIGINT       NOT NULL,
     move_modules_write_set_change_index BIGINT       NOT NULL,
     name                                VARCHAR(256) NOT NULL,

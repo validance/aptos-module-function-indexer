@@ -3,6 +3,8 @@
 diesel::table! {
     module_function (id) {
         id -> Int4,
+        module_address -> Varchar,
+        module_name -> Varchar,
         move_modules_transaction_version -> Int8,
         move_modules_write_set_change_index -> Int8,
         name -> Varchar,
@@ -30,4 +32,7 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(module_function, move_modules,);
+diesel::allow_tables_to_appear_in_same_query!(
+    module_function,
+    move_modules,
+);
