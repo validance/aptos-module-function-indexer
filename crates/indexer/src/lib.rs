@@ -18,10 +18,11 @@ pub async fn spawn_fetch_modules_task(
     let mut conn = database.borrow_mut().get_conn()?;
     loop {
         let mut context = context.lock().await;
+        info!("fetching data from index database");
         let res = MoveModule::get_latest_modules(&mut conn, &context)?;
 
         if let Some(last_module) = res.last() {
-            info!("New module found! checkpoint: {:?}", context);
+            info!("new module found! checkpoint: {:?}", context);
             context.transaction_version = last_module.transaction_version;
             context.write_set_change_index = last_module.write_set_change_index;
 
